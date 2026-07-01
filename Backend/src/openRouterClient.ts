@@ -2,7 +2,42 @@
 // (necessário em ambientes corporativos/proxy ou quando a CA raiz está desatualizada)
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-export async function summarizeText(text: string): Promise<string> {
+export type Mode = "summarize" | "translate";
+
+const languageNames: Record<string, string> = {
+  "pt-BR": "português (Brasil)",
+  "en":    "inglês",
+  "es":    "espanhol",
+  "fr":    "francês",
+  "de":    "alemão",
+  "it":    "italiano",
+  "ja":    "japonês",
+  "zh":    "chinês simplificado",
+  "ar":    "árabe",
+  "ru":    "russo",
+};
+
+function buildPrompt(text: string, mode: Mode, language: string): string {
+  const langName = languageNames[language] ?? language;
+
+  if (mode === "summarize") {
+    return (
+      `Resuma o texto abaixo em ${langName}, em até 5 frases, ` +
+      `destacando os pontos principais. Responda somente com o resumo:\n\n${text}`
+    );
+  }
+
+  return (
+    `Traduza o texto abaixo para ${langName}. ` +
+    `Retorne apenas o texto traduzido, sem explicações adicionais:\n\n${text}`
+  );
+}
+
+export async function processText(
+  text: string,
+  mode: Mode,
+  language: string
+): Promise<string> {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -14,7 +49,7 @@ export async function summarizeText(text: string): Promise<string> {
       messages: [
         {
           role: "user",
-          content: `Resuma o texto abaixo em português, em até 5 frases, destacando os pontos principais:\n\n${text}`,
+          content: buildPrompt(text, mode, language),
         },
       ],
     }),
@@ -29,11 +64,16 @@ export async function summarizeText(text: string): Promise<string> {
     choices: { message: { content: string } }[];
   };
 
-  const summary = data.choices?.[0]?.message?.content;
+  const result = data.choices?.[0]?.message?.content;
 
-  if (!summary) {
-    throw new Error("A API não retornou um resumo em texto.");
+  if (!result) {
+    throw new Error("A API não retornou um resultado.");
   }
 
-  return summary;
+  return result;
+}
+
+// Mantém compatibilidade com código legado
+export async function summarizeText(text: string): Promise<string> {
+  return processText(text, "summarize", "pt-BR");
 }

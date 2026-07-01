@@ -1,12 +1,14 @@
-# 📄 Resumidor de Texto com IA
+# 📄 Resumidor & Tradutor de Texto com IA
 
-Aplicação web que utiliza inteligência artificial (via [OpenRouter](https://openrouter.ai)) para gerar resumos automáticos de textos em português.
+Aplicação web que utiliza inteligência artificial (via [OpenRouter](https://openrouter.ai)) para gerar resumos automáticos e traduções em tempo real para múltiplos idiomas.
 
 ---
 
 ## 🖥️ Demonstração
 
-Cole qualquer texto no campo de entrada e receba um resumo com os principais pontos em até 5 frases, gerado por um modelo de linguagem via API do OpenRouter.
+Alterne facilmente entre os modos de **Resumir** e **Traduzir**:
+- **Resumir:** Cole um texto de pelo menos 20 caracteres e obtenha os pontos principais em até 5 frases no idioma escolhido.
+- **Traduzir:** Digite ou cole textos de 3 ou mais caracteres para obter a tradução automática e imediata (tempo real via debounce de 800ms) para o idioma selecionado.
 
 ---
 
@@ -17,11 +19,19 @@ ProjetoAut/
 ├── Backend/
 │   ├── src/
 │   │   ├── server.ts           # Servidor Express + endpoints da API
-│   │   └── openRouterClient.ts # Integração com a API do OpenRouter
+│   │   └── openRouterClient.ts # Integração e prompts para a API do OpenRouter
 │   ├── package.json
 │   └── tsconfig.json
 ├── Frontend/
-│   └── index.html              # Interface web (HTML + CSS + JS em um único arquivo)
+│   ├── src/
+│   │   ├── components/         # Componentes React (LanguageSelect, ModeToggle, ResultCard)
+│   │   ├── App.tsx             # Componente e estado principal
+│   │   ├── api.ts              # Serviço de chamadas de API (com AbortController)
+│   │   ├── types.ts            # Tipos e constantes compartilhadas
+│   │   └── index.css           # Estilos globais e tokens de design
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.ts          # Configurações do Vite (React + TS)
 └── .gitignore
 ```
 
@@ -32,9 +42,9 @@ ProjetoAut/
 | Camada    | Tecnologia                              |
 |-----------|-----------------------------------------|
 | Backend   | Node.js, Express, TypeScript            |
-| Frontend  | HTML5, CSS3, JavaScript (vanilla)       |
+| Frontend  | React 19, Vite, TypeScript, CSS Modules |
 | IA        | OpenRouter API (modelos de linguagem)   |
-| Dev tools | ts-node-dev, dotenv                     |
+| Dev tools | ts-node-dev, dotenv, AbortController    |
 
 ---
 
@@ -61,21 +71,25 @@ OPENROUTER_API_KEY=sua_chave_aqui
 PORT=3001
 ```
 
-### 3. Instale as dependências do Backend
+### 3. Executando o Backend
 
 ```bash
 cd Backend
 npm install
-```
-
-### 4. Inicie o servidor
-
-```bash
 npm run dev
 ```
+O servidor da API rodará em **http://localhost:3001**.
 
-O servidor ficará disponível em **http://localhost:3001**.  
-O Frontend é servido automaticamente pelo próprio Express — basta acessar a URL acima no navegador.
+### 4. Executando o Frontend (Vite)
+
+Abra outro terminal:
+
+```bash
+cd Frontend
+npm install
+npm run dev
+```
+A interface do usuário ficará disponível em **http://localhost:5173**.
 
 ---
 
@@ -91,8 +105,33 @@ Verifica se o servidor está no ar.
 
 ---
 
-### `POST /api/summarize`
-Recebe um texto e retorna o resumo gerado pela IA.
+### `POST /api/process`
+Endpoint unificado para resumir ou traduzir textos.
+
+**Body (JSON):**
+```json
+{
+  "text": "O texto que você quer processar...",
+  "mode": "summarize", // ou "translate"
+  "language": "en"     // código do idioma (ex: pt-BR, en, es, fr, de, it, ja, zh, ar, ru)
+}
+```
+
+*Nota sobre validações:*
+- Modo `summarize`: Requer o mínimo de **20 caracteres**.
+- Modo `translate`: Requer o mínimo de **3 caracteres**.
+
+**Resposta de sucesso:**
+```json
+{
+  "result": "Texto processado/traduzido retornado pela IA..."
+}
+```
+
+---
+
+### `POST /api/summarize` (Legado)
+Endpoint legado mantido para compatibilidade simples (resumo em português).
 
 **Body (JSON):**
 ```json
@@ -105,13 +144,6 @@ Recebe um texto e retorna o resumo gerado pela IA.
 ```json
 {
   "summary": "Resumo gerado pela IA..."
-}
-```
-
-**Resposta de erro:**
-```json
-{
-  "error": "Mensagem de erro"
 }
 ```
 
@@ -129,7 +161,8 @@ Recebe um texto e retorna o resumo gerado pela IA.
 ## 📝 Observações
 
 - O arquivo `.env` **não é versionado** por segurança — nunca o envie ao repositório.
-- Em ambientes com proxy corporativo ou certificados TLS expirados, a variável `NODE_TLS_REJECT_UNAUTHORIZED=0` é definida automaticamente no cliente para permitir a conexão com a API.
+- A verificação estrita de TLS foi ajustada temporariamente no Backend com `NODE_TLS_REJECT_UNAUTHORIZED=0` para contornar problemas de certificado expirado/proxy corporativo ao se comunicar com a API do OpenRouter.
+- No frontend, requisições de digitação em tempo real concorrentes/obsoletas são canceladas de forma limpa usando `AbortController`.
 
 ---
 
