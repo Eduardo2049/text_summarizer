@@ -1,104 +1,104 @@
-# 📄 Resumidor & Tradutor de Texto com IA
+# 📄 AI-Powered Text Summarizer & Translator
 
-Aplicação web que utiliza inteligência artificial (via [OpenRouter](https://openrouter.ai)) para gerar resumos automáticos e traduções em tempo real para múltiplos idiomas.
-
----
-
-## 🖥️ Demonstração
-
-Alterne facilmente entre os modos de **Resumir** e **Traduzir**:
-- **Resumir:** Cole um texto de pelo menos 20 caracteres e obtenha os pontos principais em até 5 frases no idioma escolhido.
-- **Traduzir:** Digite ou cole textos de 3 ou mais caracteres para obter a tradução automática e imediata (tempo real via debounce de 800ms) para o idioma selecionado.
+A web application that leverages Artificial Intelligence (via [OpenRouter](https://openrouter.ai)) to generate automatic text summaries and real-time translations across multiple languages.
 
 ---
 
-## 🗂️ Estrutura do Projeto
+## 🖥️ Features & Demo
+
+Easily switch between **Summarize** and **Translate** modes:
+- **Summarize:** Paste text of at least 20 characters and receive key highlights in up to 5 sentences in your selected target language.
+- **Translate:** Start typing or paste text of 3 or more characters to get instant, real-time translations (via a 800ms input debounce) into the selected target language.
+
+---
+
+## 🗂️ Project Structure
 
 ```
 ProjetoAut/
 ├── Backend/
 │   ├── src/
-│   │   ├── server.ts           # Servidor Express + endpoints da API
-│   │   └── openRouterClient.ts # Integração e prompts para a API do OpenRouter
+│   │   ├── server.ts           # Express server & API endpoints
+│   │   └── openRouterClient.ts # OpenRouter API client wrapper & system prompts
 │   ├── package.json
 │   └── tsconfig.json
 ├── Frontend/
 │   ├── src/
-│   │   ├── components/         # Componentes React (LanguageSelect, ModeToggle, ResultCard)
-│   │   ├── App.tsx             # Componente e estado principal
-│   │   ├── api.ts              # Serviço de chamadas de API (com AbortController)
-│   │   ├── types.ts            # Tipos e constantes compartilhadas
-│   │   └── index.css           # Estilos globais e tokens de design
+│   │   ├── components/         # React UI Components (LanguageSelect, ModeToggle, ResultCard)
+│   │   ├── App.tsx             # Main App layout and state management
+│   │   ├── api.ts              # API fetch service (includes AbortController integration)
+│   │   ├── types.ts            # Type definitions & constant definitions
+│   │   └── index.css           # Global CSS variables and design tokens
 │   ├── index.html
 │   ├── package.json
-│   └── vite.config.ts          # Configurações do Vite (React + TS)
+│   └── vite.config.ts          # Vite configuration (React + TS)
 └── .gitignore
 ```
 
 ---
 
-## ⚙️ Tecnologias
+## ⚙️ Technology Stack
 
-| Camada    | Tecnologia                              |
+| Layer     | Technology                              |
 |-----------|-----------------------------------------|
 | Backend   | Node.js, Express, TypeScript            |
 | Frontend  | React 19, Vite, TypeScript, CSS Modules |
-| IA        | OpenRouter API (modelos de linguagem)   |
+| AI        | OpenRouter API (LLMs integration)       |
 | Dev tools | ts-node-dev, dotenv, AbortController    |
 
 ---
 
-## 🚀 Como Executar Localmente
+## 🚀 How to Run Locally
 
-### Pré-requisitos
+### Prerequisites
 
-- [Node.js](https://nodejs.org) v18 ou superior
-- Chave de API do [OpenRouter](https://openrouter.ai/keys)
+- [Node.js](https://nodejs.org) v18 or higher
+- An [OpenRouter API Key](https://openrouter.ai/keys)
 
-### 1. Clone o repositório
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Eduardo2049/text_summarizer.git
 cd text_summarizer
 ```
 
-### 2. Configure as variáveis de ambiente
+### 2. Configure environment variables
 
-Crie o arquivo `Backend/.env`:
+Create a `.env` file in the `Backend` directory:
 
 ```env
-OPENROUTER_API_KEY=sua_chave_aqui
+OPENROUTER_API_KEY=your_key_here
 PORT=3001
 ```
 
-### 3. Executando o Backend
+### 3. Run the Backend API
 
 ```bash
 cd Backend
 npm install
 npm run dev
 ```
-O servidor da API rodará em **http://localhost:3001**.
+The API server will start on **http://localhost:3001**.
 
-### 4. Executando o Frontend (Vite)
+### 4. Run the Frontend (Vite)
 
-Abra outro terminal:
+Open a new terminal window:
 
 ```bash
 cd Frontend
 npm install
 npm run dev
 ```
-A interface do usuário ficará disponível em **http://localhost:5173**.
+The client user interface will start on **http://localhost:5173**.
 
 ---
 
-## 🔌 Endpoints da API
+## 🔌 API Endpoints
 
 ### `GET /health`
-Verifica se o servidor está no ar.
+Checks backend status and availability.
 
-**Resposta:**
+**Response:**
 ```json
 { "status": "ok" }
 ```
@@ -106,66 +106,66 @@ Verifica se o servidor está no ar.
 ---
 
 ### `POST /api/process`
-Endpoint unificado para resumir ou traduzir textos.
+Unified endpoint to summarize or translate text.
 
-**Body (JSON):**
+**Request Body (JSON):**
 ```json
 {
-  "text": "O texto que você quer processar...",
-  "mode": "summarize", // ou "translate"
-  "language": "en"     // código do idioma (ex: pt-BR, en, es, fr, de, it, ja, zh, ar, ru)
+  "text": "The text content you want to process...",
+  "mode": "summarize", // or "translate"
+  "language": "en"     // target language code (e.g., pt-BR, en, es, fr, de, it, ja, zh, ar, ru)
 }
 ```
 
-*Nota sobre validações:*
-- Modo `summarize`: Requer o mínimo de **20 caracteres**.
-- Modo `translate`: Requer o mínimo de **3 caracteres**.
+*Validation Rules:*
+- `summarize` mode: Requires a minimum of **20 characters**.
+- `translate` mode: Requires a minimum of **3 characters**.
 
-**Resposta de sucesso:**
+**Success Response (JSON):**
 ```json
 {
-  "result": "Texto processado/traduzido retornado pela IA..."
-}
-```
-
----
-
-### `POST /api/summarize` (Legado)
-Endpoint legado mantido para compatibilidade simples (resumo em português).
-
-**Body (JSON):**
-```json
-{
-  "text": "Texto que deseja resumir (mínimo 20 caracteres)..."
-}
-```
-
-**Resposta de sucesso:**
-```json
-{
-  "summary": "Resumo gerado pela IA..."
+  "result": "Processed text or translation returned by the AI..."
 }
 ```
 
 ---
 
-## 🌐 Variáveis de Ambiente
+### `POST /api/summarize` (Legacy)
+Legacy endpoint maintained for backward compatibility (summarizes text into Portuguese).
 
-| Variável             | Descrição                              | Obrigatória |
-|----------------------|----------------------------------------|-------------|
-| `OPENROUTER_API_KEY` | Chave de acesso à API do OpenRouter    | ✅ Sim      |
-| `PORT`               | Porta em que o servidor irá rodar      | Não (padrão: `3001`) |
+**Request Body (JSON):**
+```json
+{
+  "text": "The text you want to summarize (minimum 20 characters)..."
+}
+```
+
+**Success Response (JSON):**
+```json
+{
+  "summary": "Summarized text..."
+}
+```
 
 ---
 
-## 📝 Observações
+## 🌐 Environment Variables
 
-- O arquivo `.env` **não é versionado** por segurança — nunca o envie ao repositório.
-- A verificação estrita de TLS foi ajustada temporariamente no Backend com `NODE_TLS_REJECT_UNAUTHORIZED=0` para contornar problemas de certificado expirado/proxy corporativo ao se comunicar com a API do OpenRouter.
-- No frontend, requisições de digitação em tempo real concorrentes/obsoletas são canceladas de forma limpa usando `AbortController`.
+| Variable             | Description                            | Required |
+|----------------------|----------------------------------------|----------|
+| `OPENROUTER_API_KEY` | Your OpenRouter authorization token    | ✅ Yes   |
+| `PORT`               | Port where the Backend API runs        | No (defaults to `3001`) |
 
 ---
 
-## 📄 Licença
+## 📝 Troubleshooting & Dev Notes
 
-Projeto de uso interno / educacional.
+- The `.env` file **must not** be committed or versioned for security reasons.
+- To bypass corporate proxies or outdated root authority certificates in development environments, `NODE_TLS_REJECT_UNAUTHORIZED=0` is set in the backend client logic.
+- In the frontend client, outdated or concurrent keystroke requests are safely canceled via `AbortController` signals to prevent API race conditions.
+
+---
+
+## 📄 License
+
+Internal / Educational use.
