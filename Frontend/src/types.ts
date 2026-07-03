@@ -27,4 +27,4 @@ export const LANGUAGES: Language[] = [
   { code: 'ru',    label: 'Русский',             flag: '🇷🇺' },
 ];
 
-export const API_URL = 'http://localhost:3001/api/process';
+export const API_URL = import.meta.env.VITE_API_URL || '/api/process';
